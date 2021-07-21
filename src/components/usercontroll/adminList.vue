@@ -1,6 +1,7 @@
 <template>
 <div>
   <el-table
+    stripe
     ref="multipleTable"
     :data="tableData"
     tooltip-effect="dark"
@@ -35,9 +36,26 @@
         </template>
     </el-table-column>
   </el-table>
-  <div style="margin-top: 20px">
-      <el-button>删除所选</el-button>
+<el-row>
+    <el-col :span="2">
+    <div style="margin-top: 20px;">
+        <el-button>删除所选</el-button>
+    </div>
+    </el-col>
+</el-row>
+<el-row>
+  <div class="block">
+    <el-pagination
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="currentPage"
+      :page-sizes="[10, 20, 30, 40]"
+      :page-size="pageSize"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total">
+    </el-pagination>
   </div>
+</el-row>
 </div>
 </template>
 
@@ -46,55 +64,59 @@
     name:"userList",
     data() {
       return {
-        tableData: [{
-          date: '2016-05-03',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-02',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-04',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-01',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-08',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-06',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-07',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }],
-        multipleSelection: []
+        admins: [],
+        multipleSelection: [],
+        currentPage: 1,
+        pageSize: 10,
+        total: 400 ,
       }
     },
 
+    created: function(){
+        this.getAdmin()
+    },
+
     methods: {
-      toggleSelection(rows) {
-        if (rows) {
-          rows.forEach(row => {
-            this.$refs.multipleTable.toggleRowSelection(row);
-          });
-        } else {
-          this.$refs.multipleTable.clearSelection();
+        getAdmin(){
+            var _this = this;
+            this.$axios.get('/adminlist',{
+                params:{
+                    pageSize:_this.pageSize,
+                    currentPage:_this.currentPage,
+                }
+            }).then(resp =>{
+                if(resp && resp.status === 200){
+                    console.log(resp.data)
+                    _this.admins = resp.data
+                }
+            })
+        },
+
+        toggleSelection(rows) {
+            if (rows) {
+            rows.forEach(row => {
+                this.$refs.multipleTable.toggleRowSelection(row);
+            });
+            } else {
+            this.$refs.multipleTable.clearSelection();
+            }
+        },
+        handleSelectionChange(val) {
+            this.multipleSelection = val;
+            console.log(this.multipleSelection);
+        },
+        handleClick(row) {
+            console.log(row);
+        },
+
+        handleSizeChange(val) {
+            this.pageSize = val;
+            console.log(`每页 ${val} 条`);
+        },
+        handleCurrentChange(val) {
+            this.currentPage = val;
+            console.log(`当前页: ${val}`);
         }
-      },
-      handleSelectionChange(val) {
-        this.multipleSelection = val;
-      },
-      handleClick(row) {
-        console.log(row);
-      }
-    }
+        },
   }
 </script>
