@@ -86,12 +86,12 @@ import {getStore} from './libs/storage';
 
             console.log(getStore("adminid"))
             console.log(getStore("adminname"))
-            // this.$router.replace('/home')
-            // this.$notify({
-            //   title: '登录成功',
-            //   message: '欢迎回来',
-            //   position: 'top-left'
-            // });
+            this.$router.replace('/home')
+            this.$notify({
+              title: '登录成功',
+              message: '欢迎回来',
+              position: 'top-left'
+            });
           }
           else
           {
