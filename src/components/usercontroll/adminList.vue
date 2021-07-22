@@ -1,29 +1,47 @@
 <template>
 <div>
+
+  <el-col span="4">
+    <el-input
+      placeholder="请输入内容"
+      v-model="searchMsg">
+      <i slot="prefix" class="el-input__icon el-icon-search"></i>
+    </el-input>
+  </el-col>
+
   <el-table
     stripe
     ref="multipleTable"
-    :data="tableData"
+    :data="admins"
     tooltip-effect="dark"
     style="width: 100%"
-    @selection-change="handleSelectionChange">
+    @selection-change="handleSelectionChange"
+    >
     <el-table-column
       type="selection"
       width="55">
     </el-table-column>
     <el-table-column
-      label="日期"
+      prop="id"
+      label="id"
+      sortable
       width="120">
-      <template slot-scope="scope">{{ scope.row.date }}</template>
+      <!-- <template slot-scope="scope">{{ scope.row.id }}</template> -->
     </el-table-column>
     <el-table-column
-      prop="name"
-      label="姓名"
+      prop="adminname"
+      label="用户名"
+      sortable
       width="120">
     </el-table-column>
     <el-table-column
-      prop="address"
-      label="地址"
+      prop="password"
+      label="密码"
+      show-overflow-tooltip>
+    </el-table-column>
+    <el-table-column
+      prop="remarks"
+      label="备注"
       show-overflow-tooltip>
     </el-table-column>
     <el-table-column
@@ -31,16 +49,17 @@
         label="操作"
         width="100">
         <template slot-scope="scope">
-            <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
+            <el-button @click="deleteAdmin(scope.row,scope.$index)" type="text" size="small" style="color:red">删除</el-button>
             <el-button type="text" size="small">编辑</el-button>
         </template>
     </el-table-column>
   </el-table>
-<el-row>
+<el-row :gutter="10" style="margin-top:20px">
     <el-col :span="2">
-    <div style="margin-top: 20px;">
-        <el-button>删除所选</el-button>
-    </div>
+          <el-button type="danger" size="small" :disabled="multipleSelection.length==0? true:false">删除所选</el-button>
+    </el-col>
+    <el-col :span="2">
+        <el-button type="primary" size="small">新增管理员</el-button>
     </el-col>
 </el-row>
 <el-row>
@@ -68,7 +87,8 @@
         multipleSelection: [],
         currentPage: 1,
         pageSize: 10,
-        total: 400 ,
+        total: '' ,
+        searchMsg:'',
       }
     },
 
@@ -86,37 +106,45 @@
                 }
             }).then(resp =>{
                 if(resp && resp.status === 200){
-                    console.log(resp.data)
-                    _this.admins = resp.data
+                    _this.admins = resp.data.data
+                    _this.total = resp.data.total
                 }
             })
         },
 
-        toggleSelection(rows) {
-            if (rows) {
-            rows.forEach(row => {
-                this.$refs.multipleTable.toggleRowSelection(row);
-            });
-            } else {
-            this.$refs.multipleTable.clearSelection();
-            }
-        },
         handleSelectionChange(val) {
             this.multipleSelection = val;
             console.log(this.multipleSelection);
         },
-        handleClick(row) {
-            console.log(row);
+
+        deleteAdmin(row,index) {
+            var _this = this;
+            this.$axios.get('/deleteAdmin',{
+                params:{
+                    id: row.id,
+                }
+            }).then(resp =>{
+                if(resp && resp.status === 200){
+                  console.log("成功")
+                  this.getAdmin()
+                }
+            })
         },
 
         handleSizeChange(val) {
+          if(this.pageSize!=val){
             this.pageSize = val;
-            console.log(`每页 ${val} 条`);
+            this.getAdmin()
+          }      
+          console.log(`每页 ${val} 条`);
         },
+
         handleCurrentChange(val) {
-            this.currentPage = val;
-            console.log(`当前页: ${val}`);
-        }
+            if(this.currentPage!=val){
+              this.currentPage = val;
+              this.getAdmin()
+            }
+          }
         },
   }
 </script>
