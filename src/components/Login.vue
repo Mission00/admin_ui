@@ -7,7 +7,7 @@
       <el-col :span="24" class="el-icon-user-solid">用户登录</el-col>
     </div>
       <div class="login-wrap">
-          <el-form class="login-container" :model="loginForm">
+          <el-form class="login-container" :model="loginForm"  v-loading="loading">
               <el-form-item>
                   <el-input type="text" v-model="loginForm.adminname" placeholder="账 号" clearable prefix-icon="el-icon-user"></el-input>
               </el-form-item>
@@ -46,7 +46,8 @@ import {getStore} from './libs/storage';
           adminname: '',
           password: ''
         },
-        responseResult: []
+        responseResult: [],
+        loading: false
       }
     },
 
@@ -67,6 +68,7 @@ import {getStore} from './libs/storage';
       var keyCode = window.Event?e.keyCode:e.whitch;
       if(keyCode == 13)
       {
+        this.loading = true
         this.submit();
       }
     },
@@ -77,6 +79,7 @@ import {getStore} from './libs/storage';
           adminname:this.loginForm.adminname,
           password:this.loginForm.password,
         }).then(rep => {
+          this.loading = false
           if(rep.data.code === 200)
           { 
             console.log(rep.data.data.adminid);
