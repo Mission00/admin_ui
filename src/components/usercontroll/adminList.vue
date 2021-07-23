@@ -15,6 +15,7 @@
     :data="admins"
     tooltip-effect="dark"
     style="width: 100%"
+    height="600"
     @selection-change="handleSelectionChange"
     >
     <el-table-column
@@ -42,15 +43,15 @@
     <el-table-column
       prop="remarks"
       label="备注"
-      show-overflow-tooltip>
+       >
     </el-table-column>
     <el-table-column
         fixed="right"
         label="操作"
-        width="100">
+        width="150">
         <template slot-scope="scope">
-            <el-button @click="deleteAdmin(scope.row,scope.$index)" type="text" size="small" style="color:red">删除</el-button>
-            <el-button type="text" size="small">编辑</el-button>
+            <el-button @click="deleteAdmin(scope.row,scope.$index)" type="danger" size="mini" >删除</el-button>
+            <el-button size="mini">编辑</el-button>
         </template>
     </el-table-column>
   </el-table>
@@ -59,7 +60,26 @@
           <el-button type="danger" size="small" :disabled="multipleSelection.length==0? true:false">删除所选</el-button>
     </el-col>
     <el-col :span="2">
-        <el-button type="primary" size="small">新增管理员</el-button>
+        <el-button type="primary" size="small" @click="dialogFormVisible = true">新增管理员</el-button>
+              
+      <el-dialog title="新增管理员" :visible.sync="dialogFormVisible">
+        <el-form :model="form">
+          <el-form-item label="用户名" :label-width="formLabelWidth">
+            <el-input v-model="form.adminName" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="密码" :label-width="formLabelWidth">
+            <el-input v-model="form.password" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="备注" :label-width="formLabelWidth">
+            <el-input v-model="form.remarks" autocomplete="off"></el-input>
+          </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="insertAdmin">确 定</el-button>
+        </div>
+      </el-dialog>
+
     </el-col>
 </el-row>
 <el-row>
@@ -75,6 +95,9 @@
     </el-pagination>
   </div>
 </el-row>
+
+
+
 </div>
 </template>
 
@@ -89,6 +112,14 @@
         pageSize: 10,
         total: '' ,
         searchMsg:'',
+        dialogFormVisible: false,
+        formLabelWidth: '120px',
+        form: {
+          adminName:'',
+          password:'',
+          remarks:'',
+        },
+        loading:true,
       }
     },
 
@@ -108,8 +139,30 @@
                 if(resp && resp.status === 200){
                     _this.admins = resp.data.data
                     _this.total = resp.data.total
+                    
                 }
             })
+        },
+
+        insertAdmin(){
+          this.$axios.post('insertAdmin',{
+              adminname: this.form.adminName,
+              password: this.form.password,
+              remarks: this.form.remarks,
+          }).then(resp => {
+            if(resp && resp.data.code === 200){
+              this.getAdmin()
+              this.form = {}
+              this.$message({
+                message: '成功',
+                type: 'success'
+              });
+            }else if(resp && resp.data.code === 202){
+              this.$message.error({
+                message: '失败',
+              });
+            }
+          })
         },
 
         handleSelectionChange(val) {
@@ -118,7 +171,6 @@
         },
 
         deleteAdmin(row,index) {
-            var _this = this;
             this.$axios.get('/deleteAdmin',{
                 params:{
                     id: row.id,
