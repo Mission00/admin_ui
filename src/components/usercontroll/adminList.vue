@@ -4,8 +4,9 @@
   <el-col span="4">
     <el-input
       placeholder="请输入内容"
-      v-model="searchMsg">
-      <i slot="prefix" class="el-input__icon el-icon-search"></i>
+      v-model.trim="searchMsg"
+      v-on:input="fetchAdmin">
+      <i slot="prefix" class="el-input__icon el-icon-search" id="search_input"></i>
     </el-input>
   </el-col>
 
@@ -102,6 +103,17 @@
 </template>
 
 <script>
+
+
+// 节流函数
+const delay = (function() {
+  let timer = 0;
+  return function(callback, ms) {
+    clearTimeout(timer);
+    timer = setTimeout(callback, ms);
+  };
+})();
+
   export default {
     name:"userList",
     data() {
@@ -134,15 +146,26 @@
                 params:{
                     pageSize:_this.pageSize,
                     currentPage:_this.currentPage,
+                    searchMsg:this.searchMsg,
                 }
             }).then(resp =>{
                 if(resp && resp.status === 200){
-                    _this.admins = resp.data.data
-                    _this.total = resp.data.total
+                  console.log(resp.data)
+                    this.admins = resp.data.data
+                    this.total = resp.data.total
                     
                 }
             })
         },
+
+        fetchAdmin(){
+          this.currentPage = 1
+          clearTimeout(this.timer);
+          this.timer=setTimeout(()=>{
+            this.getAdmin()
+          },800);
+        },
+
 
         insertAdmin(){
           this.$axios.post('insertAdmin',{
