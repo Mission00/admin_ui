@@ -1,100 +1,258 @@
 <template>
 <div>
+
+  <el-col span="4">
+    <el-input
+      placeholder="请输入内容"
+      v-model.trim="searchMsg"
+      v-on:input="fetchUser">
+      <i slot="prefix" class="el-input__icon el-icon-search" id="search_input"></i>
+    </el-input>
+  </el-col>
+
   <el-table
+    stripe
     ref="multipleTable"
-    :data="tableData"
+    :data="users"
     tooltip-effect="dark"
     style="width: 100%"
-    @selection-change="handleSelectionChange">
+    height="600"
+    @selection-change="handleSelectionChange"
+    >
     <el-table-column
       type="selection"
       width="55">
     </el-table-column>
     <el-table-column
-      label="日期"
+      prop="id"
+      label="id"
+      sortable
       width="120">
-      <template slot-scope="scope">{{ scope.row.date }}</template>
+      <!-- <template slot-scope="scope">{{ scope.row.id }}</template> -->
     </el-table-column>
     <el-table-column
-      prop="name"
-      label="姓名"
+      prop="username"
+      label="用户名"
+      sortable
       width="120">
     </el-table-column>
     <el-table-column
-      prop="address"
-      label="地址"
+      prop="password"
+      label="密码"
       show-overflow-tooltip>
+    </el-table-column>
+    <el-table-column
+      prop="remarks"
+      label="备注"
+       >
     </el-table-column>
     <el-table-column
         fixed="right"
         label="操作"
-        width="100">
+        width="150">
         <template slot-scope="scope">
-            <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
-            <el-button type="text" size="small">编辑</el-button>
+            <el-button @click="deleteUser(scope.row)" type="danger" size="mini" >删除</el-button>
+            <el-button size="mini" @click="dialogFormVisible = true,UpdateOrInsert=0,form=scope.row">编辑</el-button>
         </template>
     </el-table-column>
   </el-table>
-  <div style="margin-top: 20px">
-      <el-button>删除所选</el-button>
+<el-row :gutter="10" style="margin-top:20px">
+    <el-col :span="2">
+          <el-button type="danger" size="small" :disabled="multipleSelection.length==0? true:false" @click="deleteSelect()">删除所选</el-button>
+    </el-col>
+    <el-col :span="2">
+        <el-button type="primary" size="small" @click="dialogFormVisible = true,UpdateOrInsert=1">新增管理员</el-button>   
+      <el-dialog title="新增管理员" :visible.sync="dialogFormVisible">
+        <el-form :model="form">
+          <el-form-item label="用户名" :label-width="formLabelWidth">
+            <el-input v-model="form.username" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="密码" :label-width="formLabelWidth">
+            <el-input v-model="form.password" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="备注" :label-width="formLabelWidth">
+            <el-input v-model="form.remarks" autocomplete="off"></el-input>
+          </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="dialogFormVisible = false,form = {}">取 消</el-button>
+          <el-button type="primary" @click="UpdateOrInsert==1?insertUser():updateUser()">确 定</el-button>
+        </div>
+      </el-dialog>
+
+    </el-col>
+</el-row>
+<el-row>
+  <div class="block">
+    <el-pagination
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="currentPage"
+      :page-sizes="[10, 20, 30, 40]"
+      :page-size="pageSize"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total">
+    </el-pagination>
   </div>
+</el-row>
+
+
+
 </div>
 </template>
 
 <script>
+
+
+// 节流函数
+const delay = (function() {
+  let timer = 0;
+  return function(callback, ms) {
+    clearTimeout(timer);
+    timer = setTimeout(callback, ms);
+  };
+})();
+
   export default {
     name:"userList",
     data() {
       return {
-        tableData: [{
-          date: '2016-05-03',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-02',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-04',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-01',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-08',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-06',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-07',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }],
-        multipleSelection: []
+        users: [],
+        multipleSelection: [],
+        currentPage: 1,
+        pageSize: 10,
+        total: '' ,
+        searchMsg:'',
+        dialogFormVisible: false,
+        formLabelWidth: '120px',
+        form: {
+          id:'',
+          username:'',
+          password:'',
+          remarks:'',
+        },
+        loading:true,
+        UpdateOrInsert:'',
       }
     },
 
+    created: function(){
+        this.getUsers()
+    },
+
     methods: {
-      toggleSelection(rows) {
-        if (rows) {
-          rows.forEach(row => {
-            this.$refs.multipleTable.toggleRowSelection(row);
-          });
-        } else {
-          this.$refs.multipleTable.clearSelection();
-        }
-      },
-      handleSelectionChange(val) {
-        this.multipleSelection = val;
-      },
-      handleClick(row) {
-        console.log(row);
-      }
-    }
+        getUsers(){
+            var _this = this;
+            this.$axios.get('/userlist',{
+                params:{
+                    pageSize:_this.pageSize,
+                    currentPage:_this.currentPage,
+                    searchMsg:this.searchMsg,
+                }
+            }).then(resp =>{
+                if(resp && resp.status === 200){
+                  console.log(resp.data)
+                    this.users = resp.data.data
+                    this.total = resp.data.total
+                    
+                }
+            })
+        },
+
+        updateUser(){
+          console.log(this.form)
+          this.$axios.post('/updateUser',{
+              id: this.form.id,
+              username: this.form.username,
+              password: this.form.password,
+              remarks: this.form.remarks,
+          }).then(resp => {
+            if(resp && resp.status === 200){
+              this.getUsers()
+              this.form = {}
+              this.$message({
+                message: '成功',
+                type: 'success'
+              });
+              this.dialogFormVisible=false;
+            }else{
+              this.$message.error({
+                message: '失败',
+              });
+            }
+          })
+        },
+
+        fetchUser(){
+          this.currentPage = 1
+          clearTimeout(this.timer);
+          this.timer=setTimeout(()=>{
+            this.getUsers()
+          },800);
+        },
+
+
+        insertUser(){
+          console.log("insert")
+          this.$axios.post('/insertUser',{
+              username: this.form.username,
+              password: this.form.password,
+              remarks: this.form.remarks,
+          }).then(resp => {
+            if(resp && resp.data.code === 200){
+              this.getUsers()
+              this.form = {}
+              this.$message({
+                message: '成功',
+                type: 'success'
+              });
+            }else if(resp && resp.data.code === 202){
+              this.$message.error({
+                message: '用户名已存在',
+              });
+            }
+          })
+        },
+
+        deleteSelect(){
+          console.log("deleteSelect")
+          for(let item of this.multipleSelection){
+            this.deleteUser(item)
+          }
+        },
+
+        handleSelectionChange(val) {
+            this.multipleSelection = val;
+            console.log(this.multipleSelection);
+        },
+
+        deleteUser(row) {
+            this.$axios.get('/deleteUser',{
+                params:{
+                    id: row.id,
+                }
+            }).then(resp =>{
+                if(resp && resp.status === 200){
+                  console.log("成功")
+                  this.getUsers()
+                }
+            })
+        },
+
+        handleSizeChange(val) {
+          if(this.pageSize!=val){
+            this.pageSize = val;
+            this.getUsers()
+          }      
+          console.log(`每页 ${val} 条`);
+        },
+
+        handleCurrentChange(val) {
+            if(this.currentPage!=val){
+              this.currentPage = val;
+              this.getUsers()
+            }
+          }
+        },
   }
 </script>
