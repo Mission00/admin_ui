@@ -114,7 +114,7 @@ const delay = (function() {
 })();
 
   export default {
-    name:"userList",
+    name:"adminList",
     data() {
       return {
         admins: [],
