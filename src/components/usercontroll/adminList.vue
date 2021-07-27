@@ -51,22 +51,21 @@
         label="操作"
         width="150">
         <template slot-scope="scope">
-            <el-button @click="deleteAdmin(scope.row,scope.$index)" type="danger" size="mini" >删除</el-button>
-            <el-button size="mini">编辑</el-button>
+            <el-button @click="deleteAdmin(scope.row)" type="danger" size="mini" >删除</el-button>
+            <el-button size="mini" @click="dialogFormVisible = true,UpdateOrInsert=0,form=scope.row">编辑</el-button>
         </template>
     </el-table-column>
   </el-table>
 <el-row :gutter="10" style="margin-top:20px">
     <el-col :span="2">
-          <el-button type="danger" size="small" :disabled="multipleSelection.length==0? true:false">删除所选</el-button>
+          <el-button type="danger" size="small" :disabled="multipleSelection.length==0? true:false" @click="deleteSelect()">删除所选</el-button>
     </el-col>
     <el-col :span="2">
-        <el-button type="primary" size="small" @click="dialogFormVisible = true">新增管理员</el-button>
-              
+        <el-button type="primary" size="small" @click="dialogFormVisible = true,UpdateOrInsert=1">新增管理员</el-button>   
       <el-dialog title="新增管理员" :visible.sync="dialogFormVisible">
         <el-form :model="form">
           <el-form-item label="用户名" :label-width="formLabelWidth">
-            <el-input v-model="form.adminName" autocomplete="off"></el-input>
+            <el-input v-model="form.adminname" autocomplete="off"></el-input>
           </el-form-item>
           <el-form-item label="密码" :label-width="formLabelWidth">
             <el-input v-model="form.password" autocomplete="off"></el-input>
@@ -76,8 +75,8 @@
           </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
-          <el-button @click="dialogFormVisible = false">取 消</el-button>
-          <el-button type="primary" @click="insertAdmin">确 定</el-button>
+          <el-button @click="dialogFormVisible = false,form = {}">取 消</el-button>
+          <el-button type="primary" @click="UpdateOrInsert==1?insertAdmin():updateAdmin()">确 定</el-button>
         </div>
       </el-dialog>
 
@@ -127,11 +126,13 @@ const delay = (function() {
         dialogFormVisible: false,
         formLabelWidth: '120px',
         form: {
-          adminName:'',
+          id:'',
+          adminname:'',
           password:'',
           remarks:'',
         },
         loading:true,
+        UpdateOrInsert:'',
       }
     },
 
@@ -158,6 +159,30 @@ const delay = (function() {
             })
         },
 
+        updateAdmin(){
+          console.log(this.form)
+          this.$axios.post('/updateAdmin',{
+              id: this.form.id,
+              adminname: this.form.adminname,
+              password: this.form.password,
+              remarks: this.form.remarks,
+          }).then(resp => {
+            if(resp && resp.status === 200){
+              this.getAdmin()
+              this.form = {}
+              this.$message({
+                message: '成功',
+                type: 'success'
+              });
+              this.dialogFormVisible=false;
+            }else{
+              this.$message.error({
+                message: '失败',
+              });
+            }
+          })
+        },
+
         fetchAdmin(){
           this.currentPage = 1
           clearTimeout(this.timer);
@@ -168,8 +193,9 @@ const delay = (function() {
 
 
         insertAdmin(){
-          this.$axios.post('insertAdmin',{
-              adminname: this.form.adminName,
+          console.log("insert")
+          this.$axios.post('/insertAdmin',{
+              adminname: this.form.adminname,
               password: this.form.password,
               remarks: this.form.remarks,
           }).then(resp => {
@@ -182,10 +208,17 @@ const delay = (function() {
               });
             }else if(resp && resp.data.code === 202){
               this.$message.error({
-                message: '失败',
+                message: '用户名已存在',
               });
             }
           })
+        },
+
+        deleteSelect(){
+          console.log("deleteSelect")
+          for(let item of this.multipleSelection){
+            this.deleteAdmin(item)
+          }
         },
 
         handleSelectionChange(val) {
@@ -193,7 +226,7 @@ const delay = (function() {
             console.log(this.multipleSelection);
         },
 
-        deleteAdmin(row,index) {
+        deleteAdmin(row) {
             this.$axios.get('/deleteAdmin',{
                 params:{
                     id: row.id,

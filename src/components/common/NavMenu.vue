@@ -10,11 +10,11 @@
     style="min-height:100%;">
         <el-submenu index="1">
             <template slot="title">
-                <i class="el-icon-location"></i>
+                <i class="el-icon-user"></i>
                 <span>用户管理</span>
             </template>
-            <el-menu-item index="/userlist" >普通用户</el-menu-item>
-            <el-menu-item index="/adminlist">管理员</el-menu-item>
+            <el-menu-item index="/userlist" ><i class="el-icon-user"></i>普通用户管理</el-menu-item>
+            <el-menu-item index="/adminlist"><i class="el-icon-user-solid"></i>管理员管理</el-menu-item>
         </el-submenu>
 
         <el-menu-item index="2">
