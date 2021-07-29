@@ -17,7 +17,7 @@
             <el-menu-item index="/adminlist"><i class="el-icon-user-solid"></i>管理员管理</el-menu-item>
         </el-submenu>
 
-        <el-menu-item index="2">
+        <el-menu-item index="/movielist">
             <i class="el-icon-menu"></i>
             <span slot="title">影片管理</span>
         </el-menu-item>
