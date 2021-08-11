@@ -19,6 +19,11 @@ axios.defaults.baseURL = 'http://localhost:8443/api'
 Vue.prototype.$axios = axios
 Vue.config.productionTip = false
 
+// 配置全局自定义设置
+import seetings from "./assets/settings"
+Vue.prototype.$settings = seetings;
+// 在所有需要与后台交互的组件中：this.$settings.base_url + '再拼接具体后台路由
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
