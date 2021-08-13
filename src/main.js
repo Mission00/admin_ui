@@ -16,6 +16,7 @@ Vue.use(ElementUI) //使用elementUI
 var axios = require('axios')
 axios.defaults.baseURL = 'http://localhost:8443/api'
 // 全局注册，之后可在其他组件中通过 this.$axios 发送数据
+axios.defaults.headers['Content-Type'] = 'application/json';
 Vue.prototype.$axios = axios
 Vue.config.productionTip = false
 

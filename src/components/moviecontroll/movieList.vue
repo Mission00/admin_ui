@@ -130,8 +130,24 @@
     </el-col>
     <el-col :span="2">
         <el-button type="primary" size="small" @click="dialogFormVisible = true,UpdateOrInsert=1,form = {},form.language = {},form.category ={}">新增影片</el-button>
-    </el-col>   
-      <el-dialog title="编辑影片" :visible.sync="dialogFormVisible">
+    </el-col>
+</el-row>
+<el-row>
+  <div class="block">
+    <el-pagination
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="currentPage"
+      :page-sizes="[10, 20, 30, 40]"
+      :page-size="pageSize"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total">
+    </el-pagination>
+  </div>
+</el-row>
+
+
+     <el-dialog title="编辑影片" :visible.sync="dialogFormVisible">
         <el-form :model="form" >
           <el-row :gutter="10">
           <el-col span="10">
@@ -213,39 +229,32 @@
           </el-form-item>
           </el-row>
           <el-row>
-            <el-upload
-              class="upload-demo"
-              :action="uploadUrl"
-              :on-preview="handlePreview"
-              :on-remove="handleRemove"
-              :on-success="handleSuccess"
-              :file-list="fileList"
-              :limit=1
-              list-type="picture">
-              <el-button size="small" type="primary">点击上传</el-button>
-              <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
-            </el-upload>
+            <el-col span="3">
+              <span>封面图片</span>
+            </el-col>
+            <el-col span="20">
+              <el-upload
+                class="upload-demo"
+                :action="uploadUrl"
+                :on-remove="uploadRemove"
+                :on-success="handleSuccess"
+                :file-list="fileList"
+                :on-exceed="uploadExceed"
+                :limit=1
+                list-type="picture-card">
+                <el-button size="small" type="primary">选择图片</el-button>
+                <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+              </el-upload>
+            </el-col>
           </el-row>
         </el-form>
         <div slot="footer" class="dialog-footer">
           <el-button @click="dialogFormVisible = false">取 消</el-button>
-          <el-button type="primary" @click="UpdateOrInsert==1?insertAdmin():updateAdmin()">确 定</el-button>
+          <el-button type="primary" @click="UpdateOrInsert==1?insertMovie():updateMovie()">确 定</el-button>
         </div>
       </el-dialog>
-</el-row>
-<el-row>
-  <div class="block">
-    <el-pagination
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      :current-page="currentPage"
-      :page-sizes="[10, 20, 30, 40]"
-      :page-size="pageSize"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="total">
-    </el-pagination>
-  </div>
-</el-row>
+
+
 </div>
 </template>
 
@@ -275,7 +284,6 @@ const delay = (function() {
         formLabelWidth: '80px',
         language:[],
         category:[],
-        fileList:[],
         form: {
           id:'',
           name1:'',
@@ -284,23 +292,21 @@ const delay = (function() {
           director:'',
           screenwriter:'',
           tagList:[],
-          language:{
-            id:'',
-            language:''
-          },
+          language:{id:'',language:''},
           movie_length:'',
           premiere:'',
           introduction:'',
-          category:{
-            id:'',
-            category:''
-          },
+          category:{id:'',category:''},
           num:'1',
           posttime:'',
+          img_src:''
         },
         loading:true,
         UpdateOrInsert:'',
-        uploadUrl:this.$settings.base_url+'/upload'
+        fileList:[],
+        uploadUrl:this.$settings.base_url+'/file/upload',
+        dialogImageUrl: '',
+        dialogImgVisible: false
       }
     },
 
@@ -343,7 +349,7 @@ const delay = (function() {
           })
         },
 
-        updateAdmin(){
+        updateMovie(){
           console.log(this.form)
           this.$axios.post('/updateAdmin',{
               id: this.form.id,
@@ -376,13 +382,13 @@ const delay = (function() {
         },
 
 
-        insertAdmin(){
+        insertMovie(){
           console.log("insert")
-          this.$axios.post('/insertAdmin',{
-              adminname: this.form.adminname,
-              password: this.form.password,
-              remarks: this.form.remarks,
-          }).then(resp => {
+          var data=JSON.stringify(this.form);
+          console.log(data)
+          this.$axios.post('/insertmovie',
+              this.form
+          ).then(resp => {
             if(resp && resp.data.code === 200){
               this.getAdmin()
               this.form = {}
@@ -392,7 +398,7 @@ const delay = (function() {
               });
             }else if(resp && resp.data.code === 202){
               this.$message.error({
-                message: '用户名已存在',
+                message: '错误',
               });
             }
           })
@@ -445,31 +451,47 @@ const delay = (function() {
           languageSelectChanged(value) {
             for(var i=0;i<this.language.length;i++){
               if(this.language[i].id == value){
-                this.form.language = this.language[i];
+                this.form.language.language = this.language[i].language;
                 break;
               }
             }
+            this.$forceUpdate();
             console.log(this.form.language)
           },
+
           categorySelectChanged(value) {
             for(var i=0;i<this.category.length;i++){
               if(this.category[i].id == value){
-                this.form.category = this.category[i];
+                console.log(value)
+                this.form.category.category = this.category[i].category
+                console.log(this.category[i])
                 break;
               }
             }
+            this.$forceUpdate();
             console.log(this.form.category)
           },
-          handleRemove(file, fileList) {
-            console.log(file, fileList);
-          },
-          handlePreview(file) {
+
+          uploadRemove(file) {
+            this.$axios.get('/file/remove',{
+              params:{
+                fileName:file.response
+              }
+            }).then(resp=>{
+              console.log(resp.data)
+            })
             console.log(file);
           },
 
           handleSuccess(file){
               console.log(file);
-          }
+              this.form.img_src = this.$settings.img_base_url+file;
+              console.log(this.form.img_src)
+          },
+
+          uploadExceed(){
+            console.log("只能选一张")
+          },
     },
   }
 </script>
