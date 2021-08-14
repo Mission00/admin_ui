@@ -1,17 +1,52 @@
 <template>
 <div>
+  <el-row :gutter="10">
+    <el-col span="10">
+      <div>
+        <span>语言</span>
+        <el-radio-group v-model="radioLanguage" @change="fetchMovie">
+          <el-radio-button label="-1">全部</el-radio-button>
+          <el-radio-button v-for="item in language" :key="item.id" :label="item.id">{{item.language}}</el-radio-button>
+        </el-radio-group>
+      </div>
+    </el-col>
+    <el-col span="10">
+      <div>
+        <span>类型</span>
+        <el-radio-group v-model="radioCategory" @change="fetchMovie">
+          <el-radio-button label="-1">全部</el-radio-button>
+          <el-radio-button v-for="item in category" :key="item.id" :label="item.id">{{item.category}}</el-radio-button>
+        </el-radio-group>
+      </div>
+    </el-col>
+  </el-row>
 
-  <el-col span="4">
-    <el-input
-      placeholder="请输入内容"
-      v-model.trim="searchMsg"
-      v-on:input="fetchAdmin">
-      <i slot="prefix" class="el-input__icon el-icon-search" id="search_input"></i>
-    </el-input>
-  </el-col>
+  <el-row style="margin-top:10px">
+    <el-col span="2">
+      <div>
+      <el-select v-model="searchType"  slot="prepend" placeholder="请选择">
+        <el-option label="中文名" value="name1"></el-option>
+        <el-option label="演员" value="actot"></el-option>
+        <el-option label="导演" value="director"></el-option>
+      </el-select>
+      </div>
+    </el-col>
+
+    <el-col span="10">
+      <div>
+      <el-input
+        placeholder="请输入内容"
+        v-model.trim="searchMsg"
+        v-on:input="fetchMovie">
+        <i slot="prefix" class="el-input__icon el-icon-search" id="search_input"></i>
+      </el-input>
+      </div>
+    </el-col>
+  </el-row>
 
   <el-table
     stripe
+    v-loading="loading"
     ref="multipleTable"
     :data="movies"
     tooltip-effect="dark"
@@ -19,6 +54,7 @@
     height="600"
     @selection-change="handleSelectionChange"
     >
+
     <el-table-column
       type="selection"
       width="55"
@@ -34,9 +70,10 @@
     </el-table-column>
     <el-table-column
       label="封面"
+      width="120"
       align="center">
         <template slot-scope="scope">
-           <img :src="require('../../assets/movie_img/'+ scope.row.name2 +'.jpg')" style="height:120px" />
+           <el-image :src="scope.row.img_src" style="height:120px"/>
         </template>
     </el-table-column>
     <el-table-column
@@ -110,7 +147,7 @@
     </el-table-column>
     <el-table-column
       prop="posttime"
-      label="添加时间"
+      label="修改时间"
       sortable=""
       width="120">
     </el-table-column>
@@ -119,8 +156,8 @@
         label="操作"
         width="150">
         <template slot-scope="scope">
-            <el-button @click="deleteAdmin(scope.row)" type="danger" size="mini" >删除</el-button>
-            <el-button size="mini" @click="dialogFormVisible = true,UpdateOrInsert=0,form=scope.row">编辑</el-button>
+            <el-button @click="deleteMovie(scope.row)" type="danger" size="mini" >删除</el-button>
+            <el-button size="mini" @click="changeButtonClicked(scope.row)">编辑</el-button>
         </template>
     </el-table-column>
   </el-table>
@@ -129,7 +166,7 @@
           <el-button type="danger" size="small" :disabled="multipleSelection.length==0? true:false" @click="deleteSelect()">删除所选</el-button>
     </el-col>
     <el-col :span="2">
-        <el-button type="primary" size="small" @click="dialogFormVisible = true,UpdateOrInsert=1,form = {},form.language = {},form.category ={}">新增影片</el-button>
+        <el-button type="primary" size="small" @click="addButtonClicked">新增影片</el-button>
     </el-col>
 </el-row>
 <el-row>
@@ -147,7 +184,7 @@
 </el-row>
 
 
-     <el-dialog title="编辑影片" :visible.sync="dialogFormVisible">
+     <el-dialog title="编辑影片" destroy-on-close :visible.sync="dialogFormVisible">
         <el-form :model="form" >
           <el-row :gutter="10">
           <el-col span="10">
@@ -278,8 +315,9 @@ const delay = (function() {
         multipleSelection: [],
         currentPage: 1,
         pageSize: 10,
-        total: '' ,
+        total: 0,
         searchMsg:'',
+        searchType:'name1',
         dialogFormVisible: false,
         formLabelWidth: '80px',
         language:[],
@@ -306,7 +344,10 @@ const delay = (function() {
         fileList:[],
         uploadUrl:this.$settings.base_url+'/file/upload',
         dialogImageUrl: '',
-        dialogImgVisible: false
+        dialogImgVisible: false,
+        radioLanguage:-1,
+        radioCategory:-1,
+        select:'',
       }
     },
 
@@ -324,6 +365,9 @@ const delay = (function() {
                     pageSize:_this.pageSize,
                     currentPage:_this.currentPage,
                     searchMsg:this.searchMsg,
+                    searchType:this.searchType,
+                    language:this.radioLanguage,
+                    category:this.radioCategory
                 }
             }).then(resp =>{
                 if(resp && resp.status === 200){
@@ -331,8 +375,8 @@ const delay = (function() {
                     this.movies = resp.data.data
                     this.total = resp.data.total
                     console.log(resp.data.data)
-                    
                 }
+                this.loading=false
             })
         },
 
@@ -350,34 +394,30 @@ const delay = (function() {
         },
 
         updateMovie(){
-          console.log(this.form)
-          this.$axios.post('/updateAdmin',{
-              id: this.form.id,
-              adminname: this.form.adminname,
-              password: this.form.password,
-              remarks: this.form.remarks,
-          }).then(resp => {
-            if(resp && resp.status === 200){
-              this.getAdmin()
-              this.form = {}
+          console.log("update")
+          this.$axios.post('/updatemovie',
+              this.form
+          ).then(resp => {
+            if(resp && resp.data.code === 200){
+              this.getMovies()
               this.$message({
                 message: '成功',
                 type: 'success'
               });
-              this.dialogFormVisible=false;
-            }else{
+            }else if(resp && resp.data.code === 202){
               this.$message.error({
-                message: '失败',
+                message: resp.data.data,
               });
             }
           })
         },
 
-        fetchAdmin(){
+        fetchMovie(){
+          this.loading=true
           this.currentPage = 1
           clearTimeout(this.timer);
           this.timer=setTimeout(()=>{
-            this.getAdmin()
+            this.getMovies()
           },800);
         },
 
@@ -390,8 +430,7 @@ const delay = (function() {
               this.form
           ).then(resp => {
             if(resp && resp.data.code === 200){
-              this.getAdmin()
-              this.form = {}
+              this.getMovies()
               this.$message({
                 message: '成功',
                 type: 'success'
@@ -407,7 +446,7 @@ const delay = (function() {
         deleteSelect(){
           console.log("deleteSelect")
           for(let item of this.multipleSelection){
-            this.deleteAdmin(item)
+            this.deleteMovie(item)
           }
         },
 
@@ -416,10 +455,10 @@ const delay = (function() {
             console.log(this.multipleSelection);
         },
 
-        deleteAdmin(row) {
-            this.$axios.get('/deleteAdmin',{
+        deleteMovie(row) {
+            this.$axios.get('/deleteMovie',{
                 params:{
-                    id: row.id,
+                    movie_id: row.movie_id,
                 }
             }).then(resp =>{
                 if(resp && resp.status === 200){
@@ -492,6 +531,18 @@ const delay = (function() {
           uploadExceed(){
             console.log("只能选一张")
           },
+
+          changeButtonClicked(value){
+            this.dialogFormVisible = true,
+            this.UpdateOrInsert=0,
+            this.form = {...value}
+          },
+          addButtonClicked(){
+            this.dialogFormVisible = true,
+            this.UpdateOrInsert=1,form = {},
+            this.form.language = {},
+            this.form.category ={}
+          }
     },
   }
 </script>
