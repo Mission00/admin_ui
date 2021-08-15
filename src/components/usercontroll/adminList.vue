@@ -47,9 +47,23 @@
        >
     </el-table-column>
     <el-table-column
+      label="状态"
+       >
+       <template slot-scope="scope">
+          <el-switch
+            v-model="scope.row.isUsed"
+            active-color="#13ce66"
+            inactive-text='禁用'
+            active-text="启用"
+            @change="banCount(scope.row)"
+            inactive-color="#ff4949">
+          </el-switch >
+       </template>
+    </el-table-column>
+    <el-table-column
         fixed="right"
         label="操作"
-        width="150">
+        width="250">
         <template slot-scope="scope">
             <el-button @click="deleteAdmin(scope.row)" type="danger" size="mini" >删除</el-button>
             <el-button size="mini" @click="dialogFormVisible = true,UpdateOrInsert=0,form=scope.row">编辑</el-button>
@@ -130,6 +144,7 @@ const delay = (function() {
           adminname:'',
           password:'',
           remarks:'',
+          isUsed:true,
         },
         loading:true,
         UpdateOrInsert:'',
@@ -198,6 +213,7 @@ const delay = (function() {
               adminname: this.form.adminname,
               password: this.form.password,
               remarks: this.form.remarks,
+              isUsed:this.form.isUsed
           }).then(resp => {
             if(resp && resp.data.code === 200){
               this.getAdmin()
@@ -233,8 +249,10 @@ const delay = (function() {
                 }
             }).then(resp =>{
                 if(resp && resp.status === 200){
-                  console.log("成功")
+                  this.$message({message:'删除成功',type:'success'})
                   this.getAdmin()
+                }else{
+                  this.$message({message:'删除失败',type:'error'})
                 }
             })
         },
@@ -252,7 +270,23 @@ const delay = (function() {
               this.currentPage = val;
               this.getAdmin()
             }
-          }
-        },
+          },
+        banCount(val){
+          console.log(val)
+            this.$axios.get('/banAdmin',{
+                params:{
+                    id: val.id,
+                    isUsed:val.isUsed
+                }
+            }).then(resp =>{
+                if(resp && resp.status === 200){
+                  this.$message({message:'成功',type:'success'})
+                }else{
+                  val.isUsed = !val.isUsed
+                  this.$message({message:'错误',type:'error'})
+                }
+            })
+        }
+      },
   }
 </script>

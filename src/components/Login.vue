@@ -93,11 +93,11 @@ import {getStore} from './libs/storage';
             this.$notify({
               title: '登录成功',
               message: '欢迎回来',
-              position: 'top-left'
+              position: 'top-right'
             });
-          }
-          else
-          {
+          }else if(rep.data.code==-1){
+            this.$message.error('登录失败，账号被禁用！');
+          }else{
             this.$message.error('登录失败，用户名或者密码错误！');
           }
         })

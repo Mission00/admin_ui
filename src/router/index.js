@@ -6,6 +6,7 @@ import Home from '@/components/Home'
 import UserList from '@/components/usercontroll/userList'
 import AdminList from '@/components/usercontroll/adminList'
 import MovieList from '@/components/moviecontroll/movieList'
+import OtherList from '@/components/moviecontroll/other'
 
 
 Vue.use(Router)
@@ -43,7 +44,13 @@ export default new Router({
         path:'/movielist',
         name:'movieList',
         component: MovieList
-    },
+      },
+
+      {
+        path:'/otherlist',
+        name:'otherList',
+        component: OtherList
+      },
 
       ]
     }
