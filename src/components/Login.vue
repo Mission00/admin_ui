@@ -75,7 +75,7 @@ import {getStore} from './libs/storage';
 
 
       submit(){
-        this.$axios.post('/adminlogin',{
+        this.$axios.post('/admin/login',{
           adminname:this.loginForm.adminname,
           password:this.loginForm.password,
         }).then(rep => {
@@ -87,6 +87,8 @@ import {getStore} from './libs/storage';
             setStore("adminid",rep.data.data.adminid)
             setStore("adminname",rep.data.data.adminname)
 
+            this.$store.commit('login',rep.data.data);
+            
             console.log(getStore("adminid"))
             console.log(getStore("adminname"))
             this.$router.replace('/home')

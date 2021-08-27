@@ -1,7 +1,8 @@
 <template>
 <div>
+  <el-card>
   <el-row :gutter="10">
-    <el-col span="10">
+    <el-col span="11">
       <div>
         <span>语言</span>
         <el-radio-group v-model="radioLanguage" @change="fetchMovie">
@@ -43,6 +44,7 @@
       </div>
     </el-col>
   </el-row>
+  </el-card>
 
   <el-table
     stripe

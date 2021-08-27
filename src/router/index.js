@@ -1,24 +1,17 @@
 import Vue from 'vue'
+import Vuex from 'vuex'
 import Router from 'vue-router'
-import HelloWorld from '@/components/HelloWorld'
 import Login from '@/components/Login'
 import Home from '@/components/Home'
 import UserList from '@/components/usercontroll/userList'
-import AdminList from '@/components/usercontroll/adminList'
-import MovieList from '@/components/moviecontroll/movieList'
-import OtherList from '@/components/moviecontroll/other'
 
 
 Vue.use(Router)
+Vue.use(Vuex)
+
 
 export default new Router({
   routes: [
-    {
-      path: '/',
-      name: 'HelloWorld',
-      component: HelloWorld
-    },
-
     {
       path: '/login',
       name:'Login',
@@ -27,30 +20,19 @@ export default new Router({
     {
       path: '/home',
       name: 'Home',
+      meta: {
+        requireAuth: true
+      },
       component: Home,
       children:[
         {
             path:'/userlist',
             name:'userList',
-            component: UserList
+            component: UserList,
+            meta: {
+              requireAuth: true
+            },
         },
-        {
-          path:'/adminlist',
-          name:'adminList',
-          component: AdminList
-      },
-
-      {
-        path:'/movielist',
-        name:'movieList',
-        component: MovieList
-      },
-
-      {
-        path:'/otherlist',
-        name:'otherList',
-        component: OtherList
-      },
 
       ]
     }
