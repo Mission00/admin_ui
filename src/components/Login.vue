@@ -91,7 +91,10 @@ import {getStore} from './libs/storage';
             
             console.log(getStore("adminid"))
             console.log(getStore("adminname"))
-            this.$router.replace('/home')
+            //登录成功后跳转，跳转到主页或者来的页面
+            var path = this.$route.query.redirect
+            this.$router.replace({path: path === '/' || path === undefined ? '/home/userlist' : path})
+
             this.$notify({
               title: '登录成功',
               message: '欢迎回来',

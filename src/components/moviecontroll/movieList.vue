@@ -148,6 +148,7 @@
       width="120">
     </el-table-column>
     <el-table-column
+      fixed="right"
       prop="posttime"
       label="修改时间"
       sortable=""
@@ -186,7 +187,7 @@
 </el-row>
 
 
-     <el-dialog title="编辑影片" destroy-on-close :visible.sync="dialogFormVisible">
+     <el-dialog title="编辑影片" destroy-on-close :visible.sync="dialogFormVisible" style="text-align:left">
         <el-form :model="form" >
           <el-row :gutter="10">
           <el-col span="10">

@@ -66,7 +66,7 @@
         width="250">
         <template slot-scope="scope">
             <el-button @click="deleteAdmin(scope.row)" type="danger" size="mini" >删除</el-button>
-            <el-button size="mini" @click="dialogFormVisible = true,UpdateOrInsert=0,form=scope.row">编辑</el-button>
+            <el-button size="mini" @click="updateButtonClick(scope.row)">编辑</el-button>
         </template>
     </el-table-column>
   </el-table>
@@ -75,25 +75,7 @@
           <el-button type="danger" size="small" :disabled="multipleSelection.length==0? true:false" @click="deleteSelect()">删除所选</el-button>
     </el-col>
     <el-col :span="2">
-        <el-button type="primary" size="small" @click="dialogFormVisible = true,UpdateOrInsert=1">新增管理员</el-button>   
-      <el-dialog title="新增管理员" :visible.sync="dialogFormVisible">
-        <el-form :model="form">
-          <el-form-item label="用户名" :label-width="formLabelWidth">
-            <el-input v-model="form.adminname" autocomplete="off"></el-input>
-          </el-form-item>
-          <el-form-item label="密码" :label-width="formLabelWidth">
-            <el-input v-model="form.password" autocomplete="off"></el-input>
-          </el-form-item>
-          <el-form-item label="备注" :label-width="formLabelWidth">
-            <el-input v-model="form.remarks" autocomplete="off"></el-input>
-          </el-form-item>
-        </el-form>
-        <div slot="footer" class="dialog-footer">
-          <el-button @click="dialogFormVisible = false,form = {}">取 消</el-button>
-          <el-button type="primary" @click="UpdateOrInsert==1?insertAdmin():updateAdmin()">确 定</el-button>
-        </div>
-      </el-dialog>
-
+        <el-button type="primary" size="small" @click="insertButtonClick()">新增管理员</el-button>
     </el-col>
 </el-row>
 <el-row>
@@ -110,7 +92,29 @@
   </div>
 </el-row>
 
-
+        <!-- 修改信息的弹窗 -->
+      <el-dialog title="新增管理员" :visible.sync="dialogFormVisible" style="text-align:left">
+        <el-form :model="form">
+          <el-form-item label="用户名" :label-width="formLabelWidth">
+            <el-input v-model="form.adminname" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="密码" :label-width="formLabelWidth">
+            <el-input v-model="form.password" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="备注" :label-width="formLabelWidth">
+            <el-input v-model="form.remarks" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="角色分配" label-width="120px" prop="roles">
+            <el-checkbox-group v-model="selectedRolesIds">
+                <el-checkbox v-for="(role,i) in roles" :key="i" :label="role.id">{{role.name_zh}}</el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="dialogFormVisible = false,form = {}">取 消</el-button>
+          <el-button type="primary" @click="UpdateOrInsert==1?insertAdmin():updateAdmin()">确 定</el-button>
+        </div>
+      </el-dialog>
 
 </div>
 </template>
@@ -140,7 +144,6 @@ const delay = (function() {
         dialogFormVisible: false,
         formLabelWidth: '120px',
         form: {
-          id:'',
           adminname:'',
           password:'',
           remarks:'',
@@ -148,10 +151,14 @@ const delay = (function() {
         },
         loading:true,
         UpdateOrInsert:'',
+        roles:[],
+        selectedRolesIds:[],
       }
     },
 
-    created: function(){
+
+    mounted(){
+        this.getAllRole(),
         this.getAdmin()
     },
 
@@ -176,11 +183,22 @@ const delay = (function() {
 
         updateAdmin(){
           console.log(this.form)
+          let roles = []
+          //把id映射成角色
+          for (let i = 0; i < this.selectedRolesIds.length; i++) {
+            for (let j = 0; j < this.roles.length; j++) {
+              if (this.selectedRolesIds[i] === this.roles[j].id) {
+                roles.push(this.roles[j])
+              }
+            }
+          }
+          console.log(roles)
           this.$axios.post('/updateAdmin',{
               id: this.form.id,
               adminname: this.form.adminname,
               password: this.form.password,
               remarks: this.form.remarks,
+              roles:roles
           }).then(resp => {
             if(resp && resp.status === 200){
               this.getAdmin()
@@ -286,6 +304,34 @@ const delay = (function() {
                   this.$message({message:'错误',type:'error'})
                 }
             })
+        },
+
+        getAllRole(){
+          console.log("获取角色")
+          this.$axios.get('/getAllRole').then(resp => {
+            if(resp && resp.status === 200){
+              this.roles=resp.data;
+              console.log(this.roles)
+            }else{
+              this.$message({message:'角色获取错误',type:'error'})
+            }
+          })
+        },
+        updateButtonClick(user){
+          this.dialogFormVisible = true,
+          this.UpdateOrInsert=0,
+          this.form=user
+          let roleIds = []
+          for (let i = 0; i < user.roles.length; i++) {
+            roleIds.push(user.roles[i].id)
+          }
+          this.selectedRolesIds = roleIds
+        },
+        insertButtonClick(){
+          this.dialogFormVisible = true,
+          this.UpdateOrInsert=1,
+          this.form={},
+          this.selectedRolesIds=[]
         }
       },
   }

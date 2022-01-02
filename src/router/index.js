@@ -26,7 +26,7 @@ export default new Router({
       component: Home,
       children:[
         {
-            path:'/userlist',
+            path:'/home/userlist',
             name:'userList',
             component: UserList,
             meta: {
@@ -35,6 +35,10 @@ export default new Router({
         },
 
       ]
+    },
+    {
+      path:'*',
+      name:'404'
     }
   ]
 })

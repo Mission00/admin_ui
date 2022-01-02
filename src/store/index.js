@@ -30,7 +30,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-      adminname: window.sessionStorage.getItem('adminname' || '[]') == null ? '' : JSON.parse(window.sessionStorage.getItem('adminname' || '[]')).adminname,
+      adminname: window.sessionStorage.getItem('adminname' || '[]') == null ? '' : JSON.parse(window.sessionStorage.getItem('adminname' || '[]')),
       adminMenus: [],
   },
   mutations: {
