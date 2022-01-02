@@ -75,7 +75,7 @@ import {getStore} from './libs/storage';
 
 
       submit(){
-        this.$axios.post('/admin/login',{
+        this.$axios.post('/login',{
           adminname:this.loginForm.adminname,
           password:this.loginForm.password,
         }).then(rep => {

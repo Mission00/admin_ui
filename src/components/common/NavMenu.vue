@@ -55,7 +55,7 @@
     </el-menu> -->
     <el-menu
       style="min-height:100%;"
-      :default-active="'/userlist'"
+      :default-active="currentPath"
       class="el-menu-admin"
       router
       mode="vertical"
@@ -95,6 +95,9 @@
       },
       handleClose(key, keyPath) {
         console.log(key, keyPath);
+      },
+      currentPath () {
+        return this.$route.path
       }
     }
   }
