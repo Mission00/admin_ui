@@ -60,7 +60,7 @@ export default {
             name_zh: this.roleForm.nameZh
           })
           .then(resp => {
-            if (resp.data.code === 200) {
+            if (resp.status  === 200) {
               this.$alert(resp.data.result, '提示', {
                 confirmButtonText: '确定'
               })

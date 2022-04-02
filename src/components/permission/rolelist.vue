@@ -89,7 +89,7 @@ export default {
     mounted(){
         this.getAllRole()
         this.getAllPerms()
-        this.getMenuByRid(1)//用角色1获取全部菜单
+        this.getAllMenu()//用角色1获取全部菜单
     },
     methods:{
         getAllRole(){
@@ -121,6 +121,19 @@ export default {
               rid:rid
             }
           }).then(resp => {
+            if(resp.status===200 && resp.data){
+              console.log("菜单获取成功")
+              this.menus = resp.data
+              console.log(this.menus)
+            }else{
+              console.log("获取菜单失败")
+            }
+            
+          })
+        },
+        getAllMenu(){
+          console.log("获取全部菜单")
+          this.$axios.get('/role/allMenu').then(resp => {
             if(resp.status===200 && resp.data){
               console.log("菜单获取成功")
               this.menus = resp.data

@@ -4,7 +4,7 @@
   <el-row :gutter="10">
     <el-col span="11">
       <div>
-        <span>语言</span>
+        <span style="font-size:15px">语言</span>
         <el-radio-group v-model="radioLanguage" @change="fetchMovie">
           <el-radio-button label="-1">全部</el-radio-button>
           <el-radio-button v-for="item in language" :key="item.id" :label="item.id">{{item.language}}</el-radio-button>
@@ -13,7 +13,7 @@
     </el-col>
     <el-col span="10">
       <div>
-        <span>类型</span>
+        <span style="font-size:10px">类型 </span>
         <el-radio-group v-model="radioCategory" @change="fetchMovie">
           <el-radio-button label="-1">全部</el-radio-button>
           <el-radio-button v-for="item in category" :key="item.id" :label="item.id">{{item.category}}</el-radio-button>
