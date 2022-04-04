@@ -5,6 +5,7 @@ import App from './App'
 import router from './router'
 import store from './store'
 import mavonEditor from 'mavon-editor'
+import 'mavon-editor/dist/css/index.css'
 Vue.config.productionTip = false
 
 import ElementUI from 'element-ui' //element-ui的全部组件
