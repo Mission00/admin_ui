@@ -51,8 +51,7 @@
     </el-card>
     <el-pagination
       @current-change="handleCurrentChange"
-      :page-size="20"
-      :pager-count="11"
+      :page-size="10"
       layout="prev, pager, next"
       :total="1000">
     </el-pagination>

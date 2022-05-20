@@ -11,6 +11,8 @@ Vue.config.productionTip = false
 import ElementUI from 'element-ui' //element-ui的全部组件
 import 'element-ui/lib/theme-chalk/index.css'//element-ui的css
 import 'element-ui/lib/theme-chalk/base.css';// fade/zoomxi
+import echarts from 'echarts'
+Vue.prototype.$echarts = echarts
 
 Vue.use(ElementUI) //使用elementUI
 Vue.use(mavonEditor)
